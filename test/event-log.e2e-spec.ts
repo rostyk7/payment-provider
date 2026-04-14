@@ -1,18 +1,13 @@
 import { INestApplication } from '@nestjs/common';
-import { Queue } from 'bullmq';
 
-import { PrismaService } from '../src/prisma/prisma.service';
-import { closeTestApp, createTestApp } from './helpers/app';
+import { closeTestApp, createTestApp, waitForStatus } from './helpers/app';
 import { api, createPayment } from './helpers/request';
 
 describe('Event log', () => {
   let app: INestApplication;
-  let prisma: PrismaService;
-  let queue: Queue;
 
   beforeAll(async () => {
-    ({ app, prisma, queue } = await createTestApp());
-    await queue.pause();
+    ({ app } = await createTestApp());
   });
 
   afterAll(async () => {
@@ -20,13 +15,10 @@ describe('Event log', () => {
   });
 
   it('records immutable event log for every transition', async () => {
-    const { body: { id } } = await createPayment(app);
+    const { body: { id } } = await createPayment(app, { cardToken: 'tok_success' });
+    await waitForStatus(app, id, 'SETTLED');
 
-    await prisma.transaction.update({ where: { id }, data: { status: 'SETTLED' } });
-    await prisma.transactionEvent.create({
-      data: { transactionId: id, fromStatus: 'PENDING', toStatus: 'SETTLED', reason: 'test' },
-    });
-    await api(app).post(`/payments/${id}/refund`).send({});
+    await api(app).post(`/payments/${id}/refund`).send({ reason: 'Test refund' });
 
     const res = await api(app).get(`/payments/${id}`);
     const statuses = res.body.events.map((e: any) => e.toStatus);

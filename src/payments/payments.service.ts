@@ -1,5 +1,6 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { TransactionStatus } from '@prisma/client';
 import { Queue } from 'bullmq';
 
@@ -13,6 +14,7 @@ export const PAYMENT_QUEUE = 'payment-processing';
 export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
     @InjectQueue(PAYMENT_QUEUE) private readonly paymentQueue: Queue,
   ) {}
 
@@ -32,6 +34,7 @@ export class PaymentsService {
           amount: dto.amount,
           currency: dto.currency,
           idempotencyKey: dto.idempotencyKey,
+          cardToken: dto.cardToken,
           metadata: (dto.metadata ?? {}) as object,
           status: TransactionStatus.PENDING,
         },
@@ -49,6 +52,8 @@ export class PaymentsService {
       return created;
     });
 
+    const attempts = parseInt(this.config.get('PAYMENT_JOB_ATTEMPTS', '3'), 10);
+
     await this.paymentQueue.add(
       'process-payment',
       {
@@ -56,7 +61,7 @@ export class PaymentsService {
         webhookUrl: dto.webhookUrl,
       },
       {
-        attempts: 3,
+        attempts,
         backoff: { type: 'exponential', delay: 2000 },
         jobId: transaction.id,
       },

@@ -1,4 +1,4 @@
-import { IsInt, IsString, IsOptional, IsObject, Min, Length, IsUUID } from 'class-validator';
+import { IsInt, IsString, IsOptional, IsObject, Min, Length } from 'class-validator';
 
 export class CreatePaymentDto {
   @IsInt()
@@ -17,6 +17,9 @@ export class CreatePaymentDto {
 
   @IsString()
   webhookUrl: string;
+
+  @IsString()
+  cardToken: string;
 
   @IsOptional()
   @IsObject()

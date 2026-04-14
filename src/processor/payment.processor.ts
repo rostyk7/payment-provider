@@ -66,6 +66,7 @@ export class PaymentProcessor extends WorkerHost {
       transactionId,
       transaction.amount,
       transaction.currency,
+      transaction.cardToken,
     );
 
     if (bankResponse.success) {

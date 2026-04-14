@@ -1,7 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const request = require('supertest');
+import request from 'supertest';
 
 export const api = (app: INestApplication) => request(app.getHttpServer());
 
@@ -20,5 +19,6 @@ export const createPayment = (
       merchantId: 'merchant_test',
       idempotencyKey: key,
       webhookUrl: 'http://localhost:9999/webhook',
+      cardToken: 'tok_success',
       ...overrides,
     });

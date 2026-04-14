@@ -29,6 +29,7 @@ model Transaction {
   currency       String            @default("USD")
   status         TransactionStatus @default(PENDING)
   idempotencyKey String            @unique
+  cardToken      String
   metadata       Json?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
