@@ -11,6 +11,7 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 export interface TestApp {
   app: INestApplication;
   prisma: PrismaService;
+  queue: Queue;
 }
 
 export async function createTestApp(): Promise<TestApp> {
@@ -28,7 +29,8 @@ export async function createTestApp(): Promise<TestApp> {
   app.useGlobalInterceptors(new IdempotencyInterceptor(prisma));
 
   await app.init();
-  return { app, prisma };
+  const queue = app.get<Queue>(getQueueToken(PAYMENT_QUEUE));
+  return { app, prisma, queue };
 }
 
 export async function closeTestApp(app: INestApplication): Promise<void> {

@@ -1,4 +1,5 @@
 import { INestApplication } from '@nestjs/common';
+import { Queue } from 'bullmq';
 
 import { PrismaService } from '../src/prisma/prisma.service';
 import { closeTestApp, createTestApp } from './helpers/app';
@@ -7,9 +8,11 @@ import { api, createPayment } from './helpers/request';
 describe('Event log', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let queue: Queue;
 
   beforeAll(async () => {
-    ({ app, prisma } = await createTestApp());
+    ({ app, prisma, queue } = await createTestApp());
+    await queue.pause();
   });
 
   afterAll(async () => {
