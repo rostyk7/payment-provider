@@ -7,6 +7,7 @@ const mockPrisma = {
   idempotencyKey: {
     findUnique: jest.fn(),
     create: jest.fn(),
+    upsert: jest.fn(),
   },
 };
 
@@ -99,7 +100,7 @@ describe('IdempotencyInterceptor', () => {
 
   it('calls handler and caches response on cache miss', async () => {
     mockPrisma.idempotencyKey.findUnique.mockResolvedValue(null);
-    mockPrisma.idempotencyKey.create.mockResolvedValue({});
+    mockPrisma.idempotencyKey.upsert.mockResolvedValue({});
 
     const responseBody = { id: 'txn-new', status: 'PENDING' };
     const context = makeContext();
@@ -112,9 +113,9 @@ describe('IdempotencyInterceptor', () => {
     });
 
     expect(next.handle).toHaveBeenCalled();
-    expect(mockPrisma.idempotencyKey.create).toHaveBeenCalledWith(
+    expect(mockPrisma.idempotencyKey.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
+        create: expect.objectContaining({
           key: 'merchant_test:test-key',
           merchantId: 'merchant_test',
           responseBody,
