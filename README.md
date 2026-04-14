@@ -97,9 +97,23 @@ Content-Type: application/json
   "merchantId": "merchant_abc",
   "idempotencyKey": "order_123",
   "webhookUrl": "https://yourapp.com/webhooks",
+  "cardToken": "tok_success",
   "metadata": { "orderId": "ord_456" }
 }
 ```
+
+#### Card Tokens
+
+The `cardToken` field controls how the mock bank responds to the charge. Use well-known test tokens to get deterministic outcomes:
+
+| Token | Outcome | Error code |
+|---|---|---|
+| `tok_success` | `SETTLED` | — |
+| `tok_insufficient_funds` | `FAILED` | `INSUFFICIENT_FUNDS` |
+| `tok_card_declined` | `FAILED` | `CARD_DECLINED` |
+| `tok_do_not_honor` | `FAILED` | `DO_NOT_HONOR` |
+
+Any unrecognised token falls back to random behaviour governed by `MOCK_FAILURE_RATE`.
 
 Response `202 Accepted`:
 ```json
@@ -182,8 +196,9 @@ Failed deliveries are retried up to **5 times** with exponential backoff. All at
 | `DATABASE_URL` | — | PostgreSQL connection string |
 | `REDIS_HOST` | `localhost` | Redis host |
 | `REDIS_PORT` | `6379` | Redis port |
-| `MOCK_FAILURE_RATE` | `0.2` | Bank failure rate (0–1) |
-| `MOCK_PROCESSING_DELAY_MS` | `500` | Simulated bank latency |
+| `MOCK_FAILURE_RATE` | `0.2` | Bank failure rate (0–1) for unrecognised card tokens |
+| `MOCK_PROCESSING_DELAY_MS` | `500` | Simulated bank latency in ms |
+| `PAYMENT_JOB_ATTEMPTS` | `3` | Max retry attempts per payment job |
 
 ## Tech Stack
 
