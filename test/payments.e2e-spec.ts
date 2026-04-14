@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 
-import { createTestApp } from './helpers/app';
+import { closeTestApp, createTestApp } from './helpers/app';
 import { api, createPayment } from './helpers/request';
 
 describe('POST /payments', () => {
@@ -11,7 +11,7 @@ describe('POST /payments', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await closeTestApp(app);
   });
 
   it('creates a payment in PENDING status', async () => {
@@ -59,7 +59,7 @@ describe('GET /payments/:id', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await closeTestApp(app);
   });
 
   it('returns the transaction with events and webhook deliveries', async () => {

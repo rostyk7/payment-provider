@@ -48,7 +48,9 @@ describe('PaymentProcessor', () => {
         { provide: MockBankService, useValue: mockBank },
         { provide: WebhooksService, useValue: mockWebhooks },
       ],
-    }).compile();
+    })
+      .setLogger({ log: () => {}, error: () => {}, warn: () => {}, debug: () => {}, verbose: () => {}, fatal: () => {} })
+      .compile();
 
     processor = module.get(PaymentProcessor);
   });

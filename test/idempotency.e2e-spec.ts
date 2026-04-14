@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 
 import { PrismaService } from '../src/prisma/prisma.service';
-import { createTestApp } from './helpers/app';
+import { closeTestApp, createTestApp } from './helpers/app';
 import { createPayment } from './helpers/request';
 
 describe('Idempotency', () => {
@@ -13,7 +13,7 @@ describe('Idempotency', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await closeTestApp(app);
   });
 
   it('returns the same transaction for duplicate idempotency key', async () => {

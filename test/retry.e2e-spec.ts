@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 
 import { PrismaService } from '../src/prisma/prisma.service';
-import { createTestApp } from './helpers/app';
+import { closeTestApp, createTestApp } from './helpers/app';
 import { api, createPayment } from './helpers/request';
 
 describe('State machine — FAILED → PENDING (retry)', () => {
@@ -13,7 +13,7 @@ describe('State machine — FAILED → PENDING (retry)', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await closeTestApp(app);
   });
 
   it('retries a failed transaction', async () => {
