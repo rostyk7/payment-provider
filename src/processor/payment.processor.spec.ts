@@ -19,6 +19,7 @@ const mockTransaction = (status: TransactionStatus) => ({
   amount: 5000,
   currency: 'USD',
   status,
+  cardToken: 'tok_success',
 });
 
 const mockPrisma = {
@@ -104,7 +105,7 @@ describe('PaymentProcessor', () => {
     it('charges the bank with correct amount and currency', async () => {
       await processor.process(makeJob({ transactionId: 'txn-uuid', webhookUrl: '' }) as Job<PaymentJobData>);
 
-      expect(mockBank.charge).toHaveBeenCalledWith('txn-uuid', 5000, 'USD');
+      expect(mockBank.charge).toHaveBeenCalledWith('txn-uuid', 5000, 'USD', 'tok_success');
     });
 
     it('enqueues payment.processing and payment.settled webhooks', async () => {

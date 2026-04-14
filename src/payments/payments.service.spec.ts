@@ -1,5 +1,6 @@
 import { getQueueToken } from '@nestjs/bullmq';
 import { NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TransactionStatus } from '@prisma/client';
 
@@ -48,6 +49,7 @@ describe('PaymentsService', () => {
       providers: [
         PaymentsService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: ConfigService, useValue: { get: (_key: string, def: string) => def } },
         { provide: getQueueToken(PAYMENT_QUEUE), useValue: mockQueue },
       ],
     }).compile();
