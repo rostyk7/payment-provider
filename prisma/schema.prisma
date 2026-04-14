@@ -1,0 +1,84 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TransactionStatus {
+  PENDING
+  PROCESSING
+  SETTLED
+  FAILED
+  REFUNDED
+}
+
+enum WebhookDeliveryStatus {
+  PENDING
+  DELIVERED
+  FAILED
+}
+
+model Transaction {
+  id             String            @id @default(uuid())
+  merchantId     String
+  amount         Int
+  currency       String            @default("USD")
+  status         TransactionStatus @default(PENDING)
+  idempotencyKey String            @unique
+  metadata       Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  events           TransactionEvent[]
+  webhookDeliveries WebhookDelivery[]
+
+  @@index([merchantId])
+  @@index([status])
+}
+
+model TransactionEvent {
+  id            String            @id @default(uuid())
+  transactionId String
+  fromStatus    TransactionStatus?
+  toStatus      TransactionStatus
+  reason        String?
+  attempt       Int               @default(1)
+  createdAt     DateTime          @default(now())
+
+  transaction Transaction @relation(fields: [transactionId], references: [id])
+
+  @@index([transactionId])
+}
+
+model IdempotencyKey {
+  key        String   @id
+  merchantId String
+  responseBody Json
+  statusCode   Int
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+
+  @@index([merchantId])
+}
+
+model WebhookDelivery {
+  id            String                @id @default(uuid())
+  transactionId String
+  event         String
+  payload       Json
+  status        WebhookDeliveryStatus @default(PENDING)
+  attempt       Int                   @default(0)
+  nextRetryAt   DateTime?
+  deliveredAt   DateTime?
+  lastError     String?
+  createdAt     DateTime              @default(now())
+
+  transaction Transaction @relation(fields: [transactionId], references: [id])
+
+  @@index([transactionId])
+  @@index([status])
+}

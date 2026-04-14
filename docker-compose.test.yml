@@ -1,0 +1,37 @@
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: payment
+      POSTGRES_PASSWORD: payment
+      POSTGRES_DB: payment_test
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U payment -d payment_test']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis-test:
+    image: redis:7-alpine
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      DATABASE_URL: postgresql://payment:payment@postgres-test:5432/payment_test
+      REDIS_HOST: redis-test
+      REDIS_PORT: 6379
+      MOCK_FAILURE_RATE: 0.2
+      MOCK_PROCESSING_DELAY_MS: 100
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    command: sh -c "npx prisma migrate deploy && npx jest --config ./test/jest-e2e.json --runInBand"
